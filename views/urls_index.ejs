@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title></title>
+</head>
+<body>
+<% include ./partials/_header %>
+ <ul>
+    <% for(let key in url) { %>
+      <li><%= url[key] %> : <a href="/urls/<%=key%>"><%= key %></a></li>
+    <% } %>
+</ul>
+
+<footer> <% include ./partials/_footer %> </footer>
+</body>
+</html>
