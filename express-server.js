@@ -53,8 +53,6 @@ app.post("/urls", (req, res) => {
 });
 
 app.get("/u/:shortURL", (req, res) => {
-  // let longURL = ...
-  // res.send(req.params.shortURL);
   let shortURL = req.params.shortURL;
   let longURL = urlDatabase[shortURL];
   if (longURL === undefined) {
@@ -65,7 +63,12 @@ app.get("/u/:shortURL", (req, res) => {
   res.redirect(longURL);
 });
 
+//removes a URL resource by using the shortURL passed as Params.
+app.post('/urls/:id/delete', (req, res) => {
+  delete urlDatabase[req.params.id];
+  res.redirect('/urls');
+});
 
-//Keeping the server running 
+//Keeping the server running
 app.listen(PORT);
 console.log("server is running");

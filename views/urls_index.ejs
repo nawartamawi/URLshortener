@@ -6,9 +6,13 @@
 <body>
 <% include ./partials/_header %>
  <ul>
-    <% for(let key in url) { %>
-      <li><%= url[key] %> : <a href="/urls/<%=key%>"><%= key %></a></li>
-    <% } %>
+    <% for(let shorturl in url) { %>
+      <li><%= url[shorturl] %> : <a href=""><%= shorturl %></a></li>
+       <form method="POST" action="/urls/<%=shorturl %>/delete">
+       <button>delete</button>
+       </form>
+    <% } %> 
+    
 </ul>
 
 <footer> <% include ./partials/_footer %> </footer>
