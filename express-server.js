@@ -19,6 +19,7 @@ var urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
 };
+
 //redirecting to /urls when requesting /
 app.get('/', (req, res) => {
   res.redirect('/urls');
@@ -52,7 +53,7 @@ app.post("/urls", (req, res) => {
   res.redirect('/urls/' + shortURL);
 });
 
-app.get("/u/:shortURL", (req, res) => {
+app.get('/u/:shortURL', (req, res) => {
   let shortURL = req.params.shortURL;
   let longURL = urlDatabase[shortURL];
   if (longURL === undefined) {
@@ -66,6 +67,12 @@ app.get("/u/:shortURL", (req, res) => {
 //removes a URL resource by using the shortURL passed as Params.
 app.post('/urls/:id/delete', (req, res) => {
   delete urlDatabase[req.params.id];
+  res.redirect('/urls');
+});
+
+//edit the database with the new input (from coming from the form) and go back to /urls
+app.post('/urls/:id', (req, res) => {
+  urlDatabase[req.params.id] = req.body.longURL;
   res.redirect('/urls');
 });
 
