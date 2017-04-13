@@ -95,6 +95,11 @@ app.post('/login', (req, res) => {
   res.redirect('/urls');
 });
 
+app.post('/logout', (req, res) => {
+  res.clearCookie('username', { path: '/' });
+  res.redirect('/urls');
+});
+
 //Keeping the server running
 app.listen(PORT);
 console.log("server is running");
