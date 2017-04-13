@@ -1,15 +1,19 @@
-//adding the express library
+//adding the express library 
 const express = require("express");
 var app = express();
+
 
 //Specify what Port to use
 var PORT = process.env.PORT || 8080;
 //Import the random string Genrator
 const generateRandomString = require("./generateRandomString");
 
-//adding the middleware bodyparser library
+//adding the middleware bodyparser and cookie-parser libraries
 const bodyParser = require("body-parser");
+const cookieParser = require('cookie-parser');
 app.use(bodyParser.urlencoded({extended: true}));
+app.use(cookieParser());
+
 
 //Specify the engine to render pages (EJS)
 app.set("view engine", "ejs");
@@ -27,20 +31,29 @@ app.get('/', (req, res) => {
 
 //Render urls_index.ejs to an HTML page when getting a GET request of root path of ./urls
 app.get('/urls', (req, res) => {
-  let templateVars = {url: urlDatabase};
+  let templateVars = {
+    url: urlDatabase,
+    username: req.cookies['username']
+  };
   res.render("urls_index", templateVars);
 });
 
 //Render urls_new to an HTML page when getting a GET request of root path of ./urls/new
 app.get("/urls/new", (req, res) => {
-  res.render("urls_new");
+  let templateVars = {
+    shortURL: req.params.id,
+    longURL: urlDatabase[req.params.id],
+    username: req.cookies["username"]
+  };
+  res.render("urls_new", templateVars);
 });
 
 //Render urls_show to an HTML page when getting a GET request with the shortURL embedded in the URL like locahost/urls/:nd33nz
 app.get('/urls/:id', (req, res) => {
   let templateVars = {
     shortURL: req.params.id,
-    longURL: urlDatabase[req.params.id]
+    longURL: urlDatabase[req.params.id],
+    username: req.cookies["username"]
   };
   res.render("urls_show", templateVars);
 });
@@ -48,7 +61,7 @@ app.get('/urls/:id', (req, res) => {
 app.post("/urls", (req, res) => {
   let longURL = req.body.longURL;
   let shortURL = generateRandomString();
-  urlDatabase[shortURL] = "http://"+longURL;
+  urlDatabase[shortURL] = longURL;
 // redirect to the url/shorturl
   res.redirect('/urls/' + shortURL);
 });
@@ -73,6 +86,12 @@ app.post('/urls/:id/delete', (req, res) => {
 //edit the database with the new input (from coming from the form) and go back to /urls
 app.post('/urls/:id', (req, res) => {
   urlDatabase[req.params.id] = req.body.longURL;
+  res.redirect('/urls');
+});
+
+//Saving username cookies here
+app.post('/login', (req, res) => {
+  res.cookie('username', req.body.username);
   res.redirect('/urls');
 });
 
