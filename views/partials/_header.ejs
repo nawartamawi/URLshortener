@@ -1,15 +1,18 @@
+
 <header> 
   <h1 style="color:brown">WELCOME TO TINY <em>url</em></h1>
-  <% if(username) { %>
-  <form action="/logout" method="POST">
-  <h4 style="color:green"><%= username %> </h4>
-  <input type="submit" value="logout">
- </form>
+   <a href="/register">  <button>Register</button></a>
+  <% if(user) { %>
+  <span style="color:green">Welcome, <%= user.email %> </span>
+  <form method="POST" action="/logout">
+    <button type="submit">Logout</button>
+  </form>
+
+
+
    <% } else{%> 
-  <form action="/login" method="POST">
-      <input name="username" placeholder="Enter username" style="width: 300px">
-      <input type="submit" value="login">
- </form>
+  <a href="/login"> <button>Login here</button></a>
+ 
     <%}%>
 
 

@@ -5,17 +5,26 @@
 </head>
 <body>
 <% include ./partials/_header %>
- <ul>
-    <% for(let shorturl in url) { %>
-      <li><%= url[shorturl] %> : <a href=""><%= shorturl %></a></li>
-       <form method="POST" action="/urls/<%=shorturl %>/delete">
-       <button>delete</button>
-       </form>
-
-       
-    <% } %> 
-</ul>
-
+<table>
+  <tbody>
+    <tr>
+      <th align="center">Long URL</th>
+      <th align="center">Short URL</th>
+    </tr>
+      <% for(let shorturl in url) { %>
+      <tr> 
+        <td><%= url[shorturl] %> : <a href=""><%= shorturl %></a></td>
+        <td>
+          <form method="POST" action="/urls/<%=shorturl %>/delete">
+          <button>delete</button>
+        </form>
+        </td>
+        </tr>
+        <% } %> 
+      </tr>
+  </tbody>
+</table>
+ 
 <footer> <% include ./partials/_footer %> </footer>
 </body>
 </html>
