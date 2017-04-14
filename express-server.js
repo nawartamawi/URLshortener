@@ -1,7 +1,6 @@
-//adding the express library 
+//adding the express library
 const express = require("express");
 var app = express();
-
 
 //Specify what Port to use
 var PORT = process.env.PORT || 8080;
@@ -24,6 +23,19 @@ var urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
+const users = {
+  "1": {
+    id: "1",
+    email: "nawartamawi@ygmail.com",
+    password: "lighthouse"
+  },
+  "2": {
+    id: "2",
+    email: "ahmedadil@yahoo.com",
+    password: "gagfreak"
+  }
+};
+
 //redirecting to /urls when requesting /
 app.get('/', (req, res) => {
   res.redirect('/urls');
@@ -33,7 +45,7 @@ app.get('/', (req, res) => {
 app.get('/urls', (req, res) => {
   let templateVars = {
     url: urlDatabase,
-    username: req.cookies['username']
+    user: users[req.cookies['user_id']]
   };
   res.render("urls_index", templateVars);
 });
@@ -43,7 +55,7 @@ app.get("/urls/new", (req, res) => {
   let templateVars = {
     shortURL: req.params.id,
     longURL: urlDatabase[req.params.id],
-    username: req.cookies["username"]
+    user: users[req.cookies["user_id"]]
   };
   res.render("urls_new", templateVars);
 });
@@ -53,7 +65,7 @@ app.get('/urls/:id', (req, res) => {
   let templateVars = {
     shortURL: req.params.id,
     longURL: urlDatabase[req.params.id],
-    username: req.cookies["username"]
+    user: users[req.cookies["user_id"]]
   };
   res.render("urls_show", templateVars);
 });
@@ -89,17 +101,63 @@ app.post('/urls/:id', (req, res) => {
   res.redirect('/urls');
 });
 
-//Saving username cookies here
+//Login POST
 app.post('/login', (req, res) => {
-  res.cookie('username', req.body.username);
-  res.redirect('/urls');
+  const email = req.body.email;
+  const password = req.body.password;
+  const userID = Object.keys(users).find((key) => users[key].email === email);
+  console.log(userID, typeof userID);
+  if (userID){
+    if (password === users[userID].password) {
+      res.cookie('user_id', userID);
+      res.redirect('/urls');
+    } else {
+      res.status(403).send('Password Doesnt Match !!!!!!');
+    }
+  } else {
+    res.status(403).send("enter a valid username and password");
+  }
 });
-
+//login GET
+app.get('/login', (req, res) => {
+  res.render('urls_login');
+});
+// logout Handler. Delete the cooke
 app.post('/logout', (req, res) => {
-  res.clearCookie('username', { path: '/' });
+  res.clearCookie('user_id', { path: '/' });
   res.redirect('/urls');
 });
 
-//Keeping the server running
+//TODO registration page get request
+app.get('/register', (req, res, next) => {
+  res.render('urls_register');
+});
+
+app.post('/register', (req, res) => {
+  let email = req.body.email;
+  let password  = req.body.password;
+  let id = generateRandomString();
+  // cheakcing if the user dont input anything 
+  if( !email || !password ){
+    res.status(400).send("Enter email and password");
+    return;
+  }
+// check email existance in DB 
+  for ( let key in users ) {
+    if (users[key].email === email){
+      res.status(400).send("user exist");
+      return;
+    }
+  }
+  //everything is look ok. Create new user
+  users[id] = {
+    "id": id,
+    "email": email,
+    "password": password
+  };
+  res.cookie('user_id', id);
+  res.redirect('/');
+});
+//Keeping the server listening
 app.listen(PORT);
 console.log("server is running");
