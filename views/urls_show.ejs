@@ -6,12 +6,13 @@
 <body>
 <% include ./partials/_header %> 
  <ul>
-      <li> LongURL is <%=longURL %>  : Short URL is  <%= shortURL %> 
+      <li> LongURL is <%=longURL %>  ----------> Short URL is  <%= shortURL %> 
          <form method="POST" action="/urls/<%=shortURL %>">
          <input id="longURL" type="text" name="longURL" value="<%= longURL %>" placeholder="Edit your URL" style="width: 300px">
          <input type="submit" value="Edit">
      </form>
       </li>
+      <a href="/urls"><button> OK </button></a>
 </ul>
 
 <footer> <% include ./partials/_footer %> </footer>

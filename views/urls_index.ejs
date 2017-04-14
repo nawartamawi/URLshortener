@@ -7,16 +7,16 @@
 <% include ./partials/_header %>
 <table>
   <tbody>
+      <% for(let shorturl in url) { %>
     <tr>
       <th align="center">Long URL</th>
       <th align="center">Short URL</th>
     </tr>
-      <% for(let shorturl in url) { %>
       <tr> 
-        <td><%= url[shorturl] %> : <a href=""><%= shorturl %></a></td>
+        <td><%= url[shorturl].long %> : <a href="/u/<%= shorturl %>"><%= shorturl %></a></td>
         <td>
           <form method="POST" action="/urls/<%=shorturl %>/delete">
-          <button>delete</button>
+         <label for=“long”> <a href="/urls/<%=shorturl %>"><button> Edit</button> </a> <button> DELETE </button> </label>
         </form>
         </td>
         </tr>
@@ -24,7 +24,7 @@
       </tr>
   </tbody>
 </table>
- 
+        <a href="/urls/new"><button> New </button></a>
 <footer> <% include ./partials/_footer %> </footer>
 </body>
 </html>
