@@ -13,11 +13,14 @@ const bodyParser = require("body-parser");
 const cookieParser = require('cookie-parser');
 const bcrypt = require("bcrypt");
 app.use(bodyParser.urlencoded({extended: true}));
-app.use(cookieParser());
-
+var cookieSession = require('cookie-session');
+app.use(cookieSession({
+  name: 'session',
+  keys: ['tyrannosaurus', 'triceratops', 'pterodactyl', 'velociraptor']
+}));
 //Authntication function to pass to the route
 const auth = (req, res, next) => {
-  if(req.cookies["user_id"]){
+  if(req.session.user_id){
     next();
   } else {
     res.status(401).send("cannot access this page, login first");
@@ -62,8 +65,8 @@ app.use('/urls/new', auth);
 //Render urls_index.ejs to an HTML page when getting a GET request of root path of ./urls
 app.get('/urls', (req, res) => {
   let templateVars = {
-    url: urlsForUser(urlDatabase, req.cookies["user_id"]),
-    user: users[req.cookies['user_id']]
+    url: urlsForUser(urlDatabase, req.session.user_id),
+    user: users[req.session.user_id]
   };
   console.log("the Users DB now is ------>", users, "URLDB ----->", urlDatabase);
   res.render("urls_index", templateVars);
@@ -72,7 +75,7 @@ app.get('/urls', (req, res) => {
 //Render urls_new to an HTML page when getting a GET request of root path of ./urls/new
 app.get("/urls/new", (req, res) => {
   let templateVars = {
-    user: users[req.cookies["user_id"].userID]
+    user: users[req.session.user_id.user_id]
   };
   console.log("here");
   res.render("urls_new", templateVars);
@@ -83,7 +86,7 @@ app.get('/urls/:id', (req, res) => {
   let templateVars = {
     shortURL: req.params.id,
     longURL: urlDatabase[req.params.id].long,
-    user: users[req.cookies["user_id"]]
+    user: users[req.session.user_id.user_id]
   };
   res.render("urls_show", templateVars);
 });
@@ -93,7 +96,7 @@ app.post("/urls", (req, res) => {
   let shortURL = generateRandomString();
   urlDatabase[shortURL] = {
     long: longURL,
-    userID: req.cookies["user_id"] };
+    userID: req.session.user_id.user_id };
 // redirect to the url/shorturl
   res.redirect('/urls/' + shortURL);
 });
@@ -125,13 +128,13 @@ app.post('/urls/:id', auth, (req, res) => {
 app.post('/login', (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
-
   const userID = Object.keys(users).find((key) => users[key].email === email);
   console.log(userID, typeof userID);
+
   if (userID){
     if (bcrypt.compareSync(password, users[userID].password))  {
-      res.cookie('user_id',
-      userID);res.redirect('/urls');
+      req.session.user_id = userID;
+      res.redirect('/urls');
     } else {
       res.status(403).send('Password Doesnt Match !!!!!!');
     }
@@ -145,7 +148,7 @@ app.get('/login', (req, res) => {
 });
 // logout Handler. Delete the cooke
 app.post('/logout', (req, res) => {
-  res.clearCookie('user_id', { path: '/' });
+  req.session.user_id = null;
   res.redirect('/urls');
 });
 
@@ -179,7 +182,8 @@ app.post('/register', (req, res) => {
     "email": email,
     "password": password
   };
-  res.cookie('user_id', id);
+  //setting session user ID
+  req.session.user_id = id;
   res.redirect('/');
 });
 //Keeping the server listening
