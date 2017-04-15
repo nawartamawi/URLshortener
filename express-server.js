@@ -8,9 +8,10 @@ var PORT = process.env.PORT || 8080;
 const generateRandomString = require("./generateRandomString");
 const urlsForUser = require("./urlsForUser");
 
-//adding the middleware bodyparser and cookie-parser libraries
+//adding the middleware bodyparser, cookie-parser and password hashing libraries
 const bodyParser = require("body-parser");
 const cookieParser = require('cookie-parser');
+const bcrypt = require("bcrypt");
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(cookieParser());
 
@@ -64,6 +65,7 @@ app.get('/urls', (req, res) => {
     url: urlsForUser(urlDatabase, req.cookies["user_id"]),
     user: users[req.cookies['user_id']]
   };
+  console.log("the Users DB now is ------>", users, "URLDB ----->", urlDatabase);
   res.render("urls_index", templateVars);
 });
 
@@ -123,12 +125,13 @@ app.post('/urls/:id', auth, (req, res) => {
 app.post('/login', (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
+
   const userID = Object.keys(users).find((key) => users[key].email === email);
   console.log(userID, typeof userID);
   if (userID){
-    if (password === users[userID].password) {
-      res.cookie('user_id', userID);
-      res.redirect('/urls');
+    if (bcrypt.compareSync(password, users[userID].password))  {
+      res.cookie('user_id',
+      userID);res.redirect('/urls');
     } else {
       res.status(403).send('Password Doesnt Match !!!!!!');
     }
@@ -153,8 +156,10 @@ app.get('/register', (req, res, next) => {
 
 app.post('/register', (req, res) => {
   let email = req.body.email;
-  let password  = req.body.password;
+  const hashedPassword = bcrypt.hashSync(req.body.password, 10);
+  let password  = hashedPassword;
   let id = generateRandomString();
+  //
   // cheakcing if the user dont input anything
   if( !email || !password ){
     res.status(400).send("Enter email and password");
