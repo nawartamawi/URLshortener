@@ -23,6 +23,7 @@ const auth = (req, res, next) => {
   if(req.session.user_id){
     next();
   } else {
+    
     res.status(401).send("cannot access this page, login first");
 
   }
@@ -42,7 +43,6 @@ var urlDatabase = {
     userID: '234'
   }
 };
-
 const users = {
   "234": {
     id: "234",
@@ -58,27 +58,41 @@ const users = {
 
 //redirecting to /urls when requesting /
 app.get('/', (req, res) => {
-  res.redirect('/urls');
+  if(req.session.user_id){
+    res.redirect('/urls');
+  } else {
+    res.redirect('/login');
+  }
 });
 
-app.use('/urls/new', auth);
 //Render urls_index.ejs to an HTML page when getting a GET request of root path of ./urls
 app.get('/urls', (req, res) => {
-  let templateVars = {
-    url: urlsForUser(urlDatabase, req.session.user_id),
-    user: users[req.session.user_id]
-  };
-  console.log("the Users DB now is ------>", users, "URLDB ----->", urlDatabase);
-  res.render("urls_index", templateVars);
+  let userLoggedin = req.session.user_id;
+  if (userLoggedin) {
+    res.status(200);
+    let templateVars = {
+      url: urlsForUser(urlDatabase, req.session.user_id),
+      user: users[req.session.user_id]
+    };
+    res.render("urls_index", templateVars);
+  } else {
+    res.status(401);
+    res.render("urls_nolog");
+  }
 });
 
 //Render urls_new to an HTML page when getting a GET request of root path of ./urls/new
 app.get("/urls/new", (req, res) => {
-  let templateVars = {
-    user: users[req.session.user_id.user_id]
-  };
-  console.log("here");
-  res.render("urls_new", templateVars);
+  let userLoggedin = req.session.user_id;
+  if (userLoggedin) {
+    let templateVars = {
+      user: users[req.session.user_id]
+    };
+    res.render("urls_new", templateVars);
+  } else {
+    res.status(401);
+    res.render("urls_nolog");
+  }
 });
 
 //Render urls_show to an HTML page when getting a GET request with the shortURL embedded in the URL like locahost/urls/:nd33nz
@@ -86,8 +100,23 @@ app.get('/urls/:id', (req, res) => {
   let templateVars = {
     shortURL: req.params.id,
     longURL: urlDatabase[req.params.id].long,
-    user: users[req.session.user_id.user_id]
+    user: users[req.session.user_id]
   };
+  if (req.params.id in urlDatabase) {
+    let userLoggedin = req.session.user_id;
+    
+    urlDatabase[req.params.id].long;
+    if (userLoggedin) {
+      res.render("urls_show", templateVars);
+    } else {
+      res.status(401);
+      res.render("urls_nolog");
+    }
+  } else {
+    res.status(404);
+    res.render("urls_notExist");
+  }
+  
   res.render("urls_show", templateVars);
 });
 //Adding new short URL
@@ -96,7 +125,7 @@ app.post("/urls", (req, res) => {
   let shortURL = generateRandomString();
   urlDatabase[shortURL] = {
     long: longURL,
-    userID: req.session.user_id.user_id };
+    userID: req.session.user_id };
 // redirect to the url/shorturl
   res.redirect('/urls/' + shortURL);
 });
@@ -105,7 +134,8 @@ app.get('/u/:shortURL', (req, res) => {
   let shortURL = req.params.shortURL;
   let longURL = urlDatabase[shortURL];
   if (longURL === undefined) {
-    res.status(404).send(`${shortURL} is not found`);
+    res.status(404);
+    res.render("urls_notExist");
     return;
   }
 //redirect to the long url found in DB
@@ -120,7 +150,10 @@ app.post('/urls/:id/delete', (req, res) => {
 
 //edit the database with the new input (from coming from the form) and go back to /urls
 app.post('/urls/:id', auth, (req, res) => {
-  urlDatabase[req.params.id] = req.body.longURL;
+  urlDatabase[req.params.id] = {
+    long: req.body.longURL,
+    userID: req.session.user_id
+  } ;
   res.redirect('/urls');
 });
 
@@ -129,22 +162,25 @@ app.post('/login', (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
   const userID = Object.keys(users).find((key) => users[key].email === email);
-  console.log(userID, typeof userID);
 
   if (userID){
     if (bcrypt.compareSync(password, users[userID].password))  {
       req.session.user_id = userID;
       res.redirect('/urls');
     } else {
-      res.status(403).send('Password Doesnt Match !!!!!!');
+      res.status(403).render('urls_password.ejs');
     }
   } else {
-    res.status(403).send("enter a valid username and password");
+    res.status(403).render('urls_invalidUser.ejs');
   }
 });
 //login GET
 app.get('/login', (req, res) => {
-  res.render('urls_login');
+  if (!req.session.user_id){
+    res.render('urls_login');
+  } else {
+    res.redirect('/');
+  }
 });
 // logout Handler. Delete the cooke
 app.post('/logout', (req, res) => {
@@ -154,7 +190,11 @@ app.post('/logout', (req, res) => {
 
 //TODO registration page get request
 app.get('/register', (req, res, next) => {
-  res.render('urls_register');
+  if (!req.session.user_id) {
+    res.render('urls_register');
+  } else {
+    res.redirect('/');
+  }
 });
 
 app.post('/register', (req, res) => {
@@ -188,4 +228,4 @@ app.post('/register', (req, res) => {
 });
 //Keeping the server listening
 app.listen(PORT);
-console.log("server is running");
+console.log("server is running ....");

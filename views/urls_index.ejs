@@ -1,29 +1,28 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title></title>
+  <title>Home - Welcome to Tiny url</title>
 </head>
 <body>
 <% include ./partials/_header %>
-<table>
-  <tbody>
+  <table>
+    <tbody>
       <% for(let shorturl in url) { %>
-    <tr>
-      <th align="center">Long URL</th>
-      <th align="center">Short URL</th>
-    </tr>
-      <tr> 
-        <td><%= url[shorturl].long %> : <a href="/u/<%= shorturl %>"><%= shorturl %></a></td>
-        <td>
-          <form method="POST" action="/urls/<%=shorturl %>/delete">
-         <label for=“long”> <a href="/urls/<%=shorturl %>"><button> Edit</button> </a> <button> DELETE </button> </label>
-        </form>
-        </td>
-        </tr>
-        <% } %> 
+      <tr>
+         <th align="left">Long URL</th>
+         <th align="left">Short URL</th>
       </tr>
-  </tbody>
-</table>
+      <tr> 
+        <td><%= url[shorturl].long %> ------: <a href="/u/<%= shorturl %>"><%=   shorturl %></a></td>
+        <td>
+           <form method="POST" action="/urls/<%=shorturl %>/delete">
+             <label for=“long”> <button> DELETE </button> </label>
+           </form>
+           <a href="/urls/<%=shorturl %>"> <button> Edit </button> </a> 
+        </td>
+      </tr>
+        <% } %> 
+    </tbody>
         <a href="/urls/new"><button> New </button></a>
 <footer> <% include ./partials/_footer %> </footer>
 </body>
