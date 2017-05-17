@@ -19,15 +19,15 @@ app.use(cookieSession({
   keys: ['tyrannosaurus', 'triceratops', 'pterodactyl', 'velociraptor']
 }));
 //Authntication function to pass to the route
-const auth = (req, res, next) => {
-  if(req.session.user_id){
-    next();
-  } else {
+// const auth = (req, res, next) => {
+//   if(req.session.user_id){
+//     next();
+//   } else {
     
-    res.status(401).send("cannot access this page, login first");
+//     res.status(401).send("cannot access this page, login first");
 
-  }
-};
+//   }
+// };
 
 //Specify the engine to render pages (EJS)
 app.set("view engine", "ejs");
@@ -58,10 +58,12 @@ const users = {
 
 //redirecting to /urls when requesting /
 app.get('/', (req, res) => {
-  if(req.session.user_id){
+  if(req.session.user_id) {
     res.redirect('/urls');
+    return;
   } else {
     res.redirect('/login');
+    return;
   }
 });
 
@@ -74,6 +76,7 @@ app.get('/urls', (req, res) => {
       url: urlsForUser(urlDatabase, req.session.user_id),
       user: users[req.session.user_id]
     };
+    
     res.render("urls_index", templateVars);
   } else {
     res.status(401);
@@ -102,12 +105,18 @@ app.get('/urls/:id', (req, res) => {
     longURL: urlDatabase[req.params.id].long,
     user: users[req.session.user_id]
   };
+
   if (req.params.id in urlDatabase) {
     let userLoggedin = req.session.user_id;
     
     urlDatabase[req.params.id].long;
+    
     if (userLoggedin) {
-      res.render("urls_show", templateVars);
+      if (req.session.user_id === urlDatabase[req.params.id].userID) {
+        res.render("urls_show", templateVars);
+      } else {
+        res.send("You can't access this page");
+      }
     } else {
       res.status(401);
       res.render("urls_nolog");
@@ -117,7 +126,7 @@ app.get('/urls/:id', (req, res) => {
     res.render("urls_notExist");
   }
   
-  res.render("urls_show", templateVars);
+  // res.render("urls_show", templateVars);
 });
 //Adding new short URL
 app.post("/urls", (req, res) => {
@@ -149,12 +158,17 @@ app.post('/urls/:id/delete', (req, res) => {
 });
 
 //edit the database with the new input (from coming from the form) and go back to /urls
-app.post('/urls/:id', auth, (req, res) => {
-  urlDatabase[req.params.id] = {
-    long: req.body.longURL,
-    userID: req.session.user_id
-  } ;
-  res.redirect('/urls');
+app.post('/urls/:id', (req, res) => {
+  let userLoggedin = req.session.user_id;
+  if (userLoggedin) {
+    urlDatabase[req.params.id] = {
+      long: req.body.longURL,
+      userID: req.session.user_id
+    };
+    res.redirect('/urls');
+  } else {
+    res.send('forbidden');
+  }
 });
 
 //Login POST
